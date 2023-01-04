@@ -49,4 +49,9 @@ class User < ApplicationRecord
   def forget
     update_attribute(:remember_digest, nil)
   end
+  
+  def self.search(keyword)
+    where(["name like?","%#{keyword}%"])
+  end
+  
 end

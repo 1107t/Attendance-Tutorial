@@ -2,7 +2,8 @@
 <div>
   <table class="table table-bordered table-condensed user-table">
     <tr>
-      <td>【<%= l(@first_day, format: :middle) %>】勤怠管理表</td>
+      <td><%= link_to "⇦", user_path(date: @first_day.prev_month), class: "btn btn-info" %>【<%= l(@first_day, format: :middle) %>】勤怠管理表
+      <%= link_to "⇨", user_path(date: @first_day.next_month), class: "btn btn-info" %></td>
       <td>指定勤務時間：<%= format_basic_info(@user.work_time) %></td>
       <td>基本時間：<%= format_basic_info(@user.basic_time) %></td>
       <td>月初日：<%= l(@first_day, format: :short) %></td>
@@ -17,9 +18,7 @@
   </table>
 </div>
 <div class="btn-users-show">
-  <%= link_to "⇦ 前月へ", user_path(date: @first_day.prev_month), class: "btn btn-info" %>
   <%= link_to "1ヶ月の勤怠編集へ", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-success" %>
-  <%= link_to "次月へ ⇨", user_path(date: @first_day.next_month), class: "btn btn-info" %>
 </div>
 <div>
   <table class="table table-bordered table-condensed table-hover" id="table-attendances">
@@ -35,17 +34,25 @@
       </tr>
     </thead>
     <tbody>
-      <% @attendances.each do |day| %>
+    <% @attendances.each do |day| %>
+    <% css_class =
+       case $days_of_the_week[day.worked_on.wday]
+       when '土'
+        "saturday_info"
+       when '日'
+        "sunday_info"
+       end 
+    %>
         <tr>
           <td><%= l(day.worked_on, format: :short) %></td>
-          <td><%= $days_of_the_week[day.worked_on.wday] %></td>
+          <td class = "<%= css_class %>"><%= $days_of_the_week[day.worked_on.wday] %></td>
           <td>
             <% if btn_text = attendance_state(day) %>
               <%= link_to "#{btn_text}登録", user_attendance_path(@user, day), method: :patch, class: "btn btn-primary btn-attendance" %>
             <% end %>
           </td>
-          <td><%= l(day.started_at, format: :time) if day.started_at.present? %></td>
-          <td><%= l(day.finished_at, format: :time) if day.finished_at.present? %></td>
+          <td><%= l(day.started_at.floor_to(15.minutes), format: :time) if day.started_at.present? %></td>
+          <td><%= l(day.finished_at.floor_to(15.minutes), format: :time) if day.finished_at.present? %></td>
           <td>
             <% if day.started_at.present? && day.finished_at.present? %>
               <%= str_times = working_times(day.started_at, day.finished_at) %>
