@@ -35,14 +35,27 @@ class AttendancesController < ApplicationController
 def update_one_month
   ActiveRecord::Base.transaction do
     attendances_params.each do |id, item|
+      
+      
+      if (item[:started_at].blank? && item[:finished_at].present?) ||
+         (item[:started_at].present? && item[:finished_at].blank?)
+         
+         raise RuntimeError  
+      end   
+      
       attendance = Attendance.find(id)
       attendance.update_attributes!(item)
-    end  
+     
+    end 
   end
   flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
   redirect_to user_url(date: params[:date])
 rescue ActiveRecord::RecordInvalid
   flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
+  redirect_to attendances_edit_one_month_user_url(date: params[:date])
+  
+rescue RuntimeError
+  flash[:danger] = "出勤時間、または退勤時間のみでの更新は出来ません。"
   redirect_to attendances_edit_one_month_user_url(date: params[:date])
 end  
   
