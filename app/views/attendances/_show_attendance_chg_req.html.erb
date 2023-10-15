@@ -1,0 +1,85 @@
+<% provide(:class_text, 'basic-info') %>
+<% provide(:button_text, '更新') %>
+
+<div class="modal-dialog modal-lg modal-dialog-center">
+  <div class="modal-content">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+    </div> 
+    <div class="modal-body">
+    <%= form_with(model: @user, url: attendances_update_attendance_chg_req_user_path(date: @first_day,attendance: @attendance), local: true, method: :patch) do |f| %>
+    <% @applicants.each do |applicant| %> 
+        <h3 class="modal-title">【<%=applicant.name %>からの勤怠変更申請】</h3>
+         <table class="table table-bordered table-condensed table-hover" id="table-attendances">
+          <thead>
+          <tr>
+            <th rowspan="3">日付</th>
+            <th rowspan="3">曜日</th>
+            <th colspan="4">【変更前】</th>
+            <th colspan="4">【変更後】</th>
+            <th rowspan="3">備考</th>
+            <th rowspan="3">指示者確認㊞</th>
+            <th rowspan ='3'>変更</th>
+            <th rowspan ='3'>勤怠を確認する</th>
+          </tr>
+          <tr>
+            <th colspan="2">出社</th>
+            <th colspan="2">退社</th>
+            <th colspan="2">出社</th>
+            <th colspan="2">退社</th>
+          </tr>
+          <tr> 
+            <th>時</th>
+            <th>分</th>
+            <th>時</th>
+            <th>分</th>
+            <th>時</th>
+            <th>分</th>
+            <th>時</th>
+            <th>分</th>
+            
+          </tr>
+          </thead>
+          <tbody>
+           <% @attendances = Attendance.where(user_id: applicant.id, attendance_chg_status: "申請中", instructor: @user.name) %>      
+            <% @attendances.each do |day| %>
+            <%= f.fields_for "attendances[]", day do |attendance| %>
+            <% css_class =
+               case $days_of_the_week[day.worked_on.wday]
+               when '土'
+                "saturday_info"
+               when '日'
+                "sunday_info"
+               end 
+            %>
+               <tr>
+                <td><%= l(day.worked_on, format: :short) %></td>
+                <td class = "<%= css_class %>"><%= $days_of_the_week[day.worked_on.wday] %></td>
+                <td><%= l(day.started_at, format: :hour) if day.started_at.present? %></td>
+                <td><%= l(day.started_at, format: :min) if day.started_at.present? %></td>
+                <td><%= l(day.finished_at, format: :hour) if day.finished_at.present? %></td>
+                <td><%= l(day.finished_at, format: :min) if day.finished_at.present? %></td>
+                <td><%= l(day.chg_started_at, format: :hour) if day.chg_started_at.present? %></td>
+                <td><%= l(day.chg_started_at, format: :min) if day.chg_started_at.present? %></td>
+                <td><%= l(day.chg_finished_at, format: :hour) if day.chg_finished_at.present? %></td>
+                <td><%= l(day.chg_finished_at, format: :min) if day.chg_finished_at.present? %></td>
+                <td><%= day.note %></td>
+                <td><%= attendance.select :attendance_chg_status, [["なし", "なし"],["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], {selected: day.attendance_chg_status} %></td>
+                <td><%= attendance.check_box  :chg_permission %></td>
+                <td><%= link_to "確認", show_attendance_status_req_user_path(applicant,date: day.worked_on.beginning_of_month), class: "btn btn-primary" %></td>
+               </tr>
+            <% end %>
+           <% end %>
+          </tbody>
+         </table>
+     <% end %>
+     <div class="center">
+          <%= f.submit "変更を送信する", class: "btn btn-lg btn-primary" %>
+     </div>
+     <% end %>
+        </div>  
+    </div>
+</div>
+

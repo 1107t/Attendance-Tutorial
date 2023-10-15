@@ -1,0 +1,2 @@
+class AddCreateToAttendance < ApplicationRecord
+end

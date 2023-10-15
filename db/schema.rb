@@ -10,7 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220407110508) do
+ActiveRecord::Schema.define(version: 20231014115129) do
+
+  create_table "add_create_to_attendances", force: :cascade do |t|
+    t.integer "attendance_nextday"
+    t.string "instructor"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "attendances", force: :cascade do |t|
     t.date "worked_on"
@@ -20,7 +27,21 @@ ActiveRecord::Schema.define(version: 20220407110508) do
     t.integer "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "attendance_nextday"
+    t.string "instructor"
+    t.string "attendance_chg_status"
+    t.datetime "chg_started_at"
+    t.datetime "chg_finished_at"
+    t.boolean "chg_permission"
     t.index ["user_id"], name: "index_attendances_on_user_id"
+  end
+
+  create_table "bases", force: :cascade do |t|
+    t.string "base_name"
+    t.integer "base_number"
+    t.string "information"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", force: :cascade do |t|
@@ -32,8 +53,15 @@ ActiveRecord::Schema.define(version: 20220407110508) do
     t.string "remember_digest"
     t.boolean "admin", default: false
     t.string "department"
-    t.datetime "basic_time", default: "2022-10-13 23:00:00"
-    t.datetime "work_time", default: "2022-10-13 22:30:00"
+    t.datetime "basic_time", default: "2023-08-28 23:00:00"
+    t.datetime "work_time", default: "2023-08-29 00:00:00"
+    t.string "affiliation"
+    t.integer "employee_number"
+    t.integer "uid"
+    t.datetime "basic_work_time"
+    t.datetime "designated_work_start_time"
+    t.datetime "designated_work_end_time"
+    t.boolean "superior", default: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 

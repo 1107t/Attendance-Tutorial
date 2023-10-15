@@ -1,0 +1,22 @@
+<% provide(:title, "working") %>
+<h1>出勤中社員一覧</h1>
+
+
+<div>
+  <table class="table table-bordered table-condensed" id="table-attendance-index">
+    <tr>
+      <th>社員番号</th>
+      <th>名前</th>
+    </tr>
+    
+    
+    <% @users.each do |user|%>
+     
+    <tr>
+      <td><%=user.employee_number %></td>
+      <td><%=user.name %></td>
+    </tr>
+        
+    <% end %>  
+  </table>     
+</div>

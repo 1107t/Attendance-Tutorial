@@ -5,7 +5,10 @@ class AttendancesController < ApplicationController
   
   UPDATE_ERROR_MSG = "勤怠登録に失敗しました。やり直してください。"
   
-  
+  APPROVAL_STS_NON = "なし"
+  APPROVAL_STS_APL = "申請中"
+  APPROVAL_STS_OK  = "承認"
+  APPROVAL_STS_NG  = "否認"
  
 
   def update
@@ -29,23 +32,43 @@ class AttendancesController < ApplicationController
   end
   
   def edit_one_month
+    @superiors = User.where(superior: true).where.not(id: current_user.id)
   end  
+  
+  def show_attendance_chg_req
+    @user = User.find(params[:id])
+    @applicants = User.joins(:attendances).where(attendances: {attendance_chg_status: APPROVAL_STS_APL, instructor: @user.name}).distinct
+    
+  end
+  
+  def update_attendance_chg_req
+    @user = User.find(params[:id])
+    
+  end   
   
   
 def update_one_month
   ActiveRecord::Base.transaction do
     attendances_params.each do |id, item|
-      
-      
-      if (item[:started_at].blank? && item[:finished_at].present?) ||
-         (item[:started_at].present? && item[:finished_at].blank?)
-         
-         raise RuntimeError  
-      end   
-      
-      attendance = Attendance.find(id)
-      attendance.update_attributes!(item)
+     # 指示者確認㊞ が設定されている場合のみ、変更有効
+     # 指示者確認㊞ を選択している場合のみチェックを行う
      
+     if item[:instructor].present?
+       
+      
+        if (item[:started_at].blank? && item[:finished_at].present?) ||
+           (item[:started_at].present? && item[:finished_at].blank?)
+         
+           raise RuntimeError  
+        end   
+        attendance = Attendance.find(id)
+        attendance.chg_started_at = item[:started_at]
+        attendance.chg_finished_at = item[:finished_at]
+        attendance.note = item[:note]
+        attendance.instructor = item[:instructor]
+        attendance.attendance_chg_status = APPROVAL_STS_APL
+        attendance.save
+     end  
     end 
   end
   flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
@@ -63,7 +86,7 @@ end
   private
   
    def attendances_params
-    params.require(:user).permit(attendances: [:started_at, :finished_at, :note])[:attendances]
+    params.require(:user).permit(attendances: [:started_at, :finished_at, :note, :instructor])[:attendances]
    end
    
   

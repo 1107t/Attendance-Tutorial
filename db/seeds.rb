@@ -10,8 +10,21 @@ User.create!(name: "Sample User",
   name  = Faker::Name.name
   email = "sample-#{n+1}@email.com"
   password = "password"
+  employee_number = n
   User.create!(name: name,
                email: email,
                password: password,
-               password_confirmation: password)
+               password_confirmation: password,
+               employee_number: employee_number)
+               
+ User.create(name: "上長A",
+            email: "super-1@email.com",
+            password: "password",
+            password_confirmation: "password",
+            superior: true) 
+User.create(name: "上長B",
+            email: "super-1@email.com",
+            password: "password",
+            password_confirmation: "password",
+            superior: true)                 
 end

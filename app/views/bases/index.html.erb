@@ -1,0 +1,37 @@
+<% provide(:title , "拠点情報一覧") %>
+<h1>拠点一覧</h1>
+<table class= "table table-bordered table-condensed table-hover" id="bases">
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th>拠点番号</th>
+      <th>拠点名</th>
+      <th>拠点種類</th>
+    </tr>
+  </thead>
+  
+  
+  <tbody>
+    <% @bases.each do |base| %>
+     <tr>
+     <td><%= link_to "修正", edit_basis_path(base), class: "btn btn-primary" %></td>
+     <td><%= link_to "削除", base, method: :delete,
+                data: { confirm: "削除してよろしいですか？" }, class: "btn btn-primary" %></td>
+          <td><%= base.base_name %></td>
+          <td><%= base.base_number %></td>
+          <td><%= base.information %></td>
+        </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-12">
+      <%= link_to "拠点情報追加",new_basis_path, class:"btn btn-primary" %>
+    </div>
+  </div>
+</div>
+
+<div id="new" class="model fade" tabindex="-1" role="dialog" aria-hidden="true"></div>

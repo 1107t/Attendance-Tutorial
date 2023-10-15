@@ -26,7 +26,20 @@ class User < ApplicationRecord
       end
     BCrypt::Password.create(string, cost: cost)
   end
-
+  
+  def self.import(file)
+      CSV.foreach(file.path, headers: true) do |row|
+        #nameが見つからなければ新しく作成
+        user = find_by(name: row["name"]) || new
+        user.attributes = row.to_hash.slice(*updatable_attributes)
+        user.save
+      end
+  end
+  
+  def self.updatable_attributes
+      ["name","email","affiliation","employee_number","uid","basic_work_time","designated_work_start_time","designated_work_end_time","superior","admin","password"]
+  end
+  
   # ランダムなトークンを返します。
   def User.new_token
     SecureRandom.urlsafe_base64

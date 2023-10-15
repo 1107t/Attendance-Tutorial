@@ -1,14 +1,27 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info]
+  before_action :set_user, only: [:show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info, :show_attendance_status_req]
   before_action :logged_in_user, only: [:index, :edit, :update, :destroy, :edit_basic_info, :update_basic_info]
-  before_action :correct_user, only: [:edit, :update]
+  before_action :correct_user, only: [:edit]
   before_action :admin_user, only: [:destroy, :edit_basic_info, :update_basic_info]
-  before_action :set_one_month, only: :show
+  before_action :set_one_month, only: [:show, :show_attendance_status_req]
   before_action :admin_or_correct_user, only: [:update, :show, :edit_one_month, :update_one_month]
 
   def index
-    @users = User.paginate(page: params[:page])
+    @users = User.paginate(page: params[:page]).where.not(name: @current_user.name)
+    
   end
+  
+    
+  
+ def csv_import
+   if params[:file].present?
+    User.import(params[:file])
+    flash[:success] = "CSVファイルのインポートが完了しました。"
+   else
+     flash[:danger] = "CSVファイルを選択してください。"
+   end   
+    redirect_to root_url
+ end 
   
   def admin_or_correct_user
     @user = User.find(params[:user_id]) if @user.blank?
@@ -20,6 +33,9 @@ class UsersController < ApplicationController
   
   def show
     @worked_sum = @attendances.where.not(started_at: nil).count
+    @superior = User.where(superior: true).where.not(id: current_user.id)
+    # 勤怠変更申請件数の取得
+    @attendance_chg_req_sum = User.joins(:attendances).where(attendances: {attendance_chg_status: "申請中", instructor: @user.name}).count
   end
 
   def new
@@ -36,14 +52,19 @@ class UsersController < ApplicationController
       render :new
     end
   end
+  
+  def kintai_member
+   @users = User.joins(:attendances).where(attendances: {worked_on: Date.today, finished_at: nil}).where.not(attendances: {started_at: nil})
+  end  
 
   def edit
+     
   end
 
   def update
     if @user.update_attributes(user_params)
       flash[:success] = "ユーザー情報を更新しました。"
-      redirect_to @user
+      redirect_to users_url
     else
       render :edit      
     end
@@ -57,6 +78,15 @@ class UsersController < ApplicationController
 
   def edit_basic_info
   end
+  
+  def show_attendance_status_req
+    @worked_sum = @attendances.where.not(started_at: nil).count
+    @superior = User.where(superior: true).where.not(id: current_user.id)
+    # 勤怠変更申請件数の取得
+    @attendance_chg_req_sum = User.joins(:attendances).where(attendances: {attendance_chg_status: "申請中", instructor: @user.name}).count
+  end   
+  
+  
 
   def update_basic_info
     if @user.update_attributes(basic_info_params)
@@ -72,6 +102,7 @@ class UsersController < ApplicationController
     
   end
   
+  
  
 
   private
@@ -79,7 +110,8 @@ class UsersController < ApplicationController
     
 
     def user_params
-      params.require(:user).permit(:name, :email, :department, :password, :password_confirmation)
+      params.require(:user).permit(:name, :email, :affiliation, :employee_number, :uid, :password, 
+                                   :basic_work_time, :designated_work_start_time, :designated_work_end_time)
     end
 
     def basic_info_params
