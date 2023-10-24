@@ -42,9 +42,59 @@ class AttendancesController < ApplicationController
   end
   
   def update_attendance_chg_req
-    @user = User.find(params[:id])
+    ActiveRecord::Base.transaction do
+    attendance_chg_req_params.each do |id, item|
+     # 指示者確認㊞ が設定されている場合のみ、変更有効
+     # 指示者確認㊞ を選択している場合のみチェックを行う
+     if item[:chg_permission] == "1"
+       
+      
+         
+        attendance = Attendance.find(id)
+        case item[:attendance_chg_status] 
+          when "申請中"
+          
+          when "承認"
+          attendance.started_at = attendance.chg_started_at
+          attendance.finished_at = attendance.chg_finished_at
+          attendance.chg_started_at = nil
+          attendance.chg_finished_at = nil
+          attendance.attendance_chg_status = APPROVAL_STS_OK
+          attendance.chg_permission = true
+          when "否認", "なし"
+          attendance.chg_started_at = nil
+          attendance.chg_finished_at = nil
+          attendance.attendance_chg_status = APPROVAL_STS_NG
+          attendance.chg_permission = true
+          else
+          
+        end
+        attendance.save
+     end  
+    end 
+  end
+    flash[:success] = "勤怠申請変更の支持者確認を更新しました。"
+    redirect_to user_url(date: params[:date])
+  rescue ActiveRecord::RecordInvalid
+    flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
+    redirect_to attendances_edit_one_month_user_url(date: params[:date])
+  
+  rescue RuntimeError
+    flash[:danger] = "支持者確認㊞のみでの更新は出来ません。"
+    redirect_to attendances_edit_one_month_user_url(date: params[:date])
+　end  
     
   end   
+  
+  def edit_overtime_application_req
+    @user = User.find(params[:id])
+    
+  end 
+  
+  def update_overtime_application_req
+    @user = User.find(params[:id])
+    @date = params[:date]
+  end
   
   
 def update_one_month
@@ -84,10 +134,14 @@ end
   
   
   private
-  
+    
    def attendances_params
     params.require(:user).permit(attendances: [:started_at, :finished_at, :note, :instructor])[:attendances]
    end
    
-  
+   def attendance_chg_req_params
+    params.require(:user).permit(attendances: [:attendance_chg_status, :chg_permission])[:attendances]
+   end
+   
+   
 end

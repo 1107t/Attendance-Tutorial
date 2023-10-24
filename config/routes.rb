@@ -24,15 +24,19 @@ Rails.application.routes.draw do
       patch 'attendances/update_attendance_chg_req'
        # 勤怠変更申請者の勤怠確認
       get 'show_attendance_status_req'
+      # 残業申請
+      get 'attendances/edit_overtime_application_req' 
+      patch 'attendances/update_overtime_application_req'
     end
     collection do
       # CSVインポート
       post :csv_import
     end  
+    resources :attendances 
     
   end 
   
-  resources :attendances 
+  
   # 拠点情報
   resources :bases
       

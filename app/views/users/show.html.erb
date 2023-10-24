@@ -75,16 +75,23 @@
        end 
     %>
         <tr>
-          <td><%= link_to "残業申請", class: "btn btn-primary" %></td>
+          <td><%= link_to "残業申請", attendances_edit_overtime_application_req_user_path(@user,date: day.worked_on), remote: true, class: "btn btn-primary" %></td>
           <td><%= l(day.worked_on, format: :short) %></td>
           <td class = "<%= css_class %>"><%= $days_of_the_week[day.worked_on.wday] %></td>
+          <td><%= l(day.started_at.floor_to(15.minutes), format: :hour) if day.started_at.present? %></td>
+          <td><%= l(day.started_at.floor_to(15.minutes), format: :min) if day.started_at.present? %></td>
           <td>
-            <% if btn_text = attendance_state(day) %>
-              <%= link_to "#{btn_text}", edit_attendance_path(@user, day), method: :patch, class: "btn btn-primary btn-attendance" %>
+            <% btn_text = attendance_state(day) %>
+            <% if btn_text == "出勤" %>
+              <%= link_to "#{btn_text}", user_attendance_path(@user, day), method: :patch, class: "btn btn-primary btn-attendance" %>
             <% end %>
           </td>
-          <td><%= l(day.started_at.floor_to(15.minutes), format: :time) if day.started_at.present? %></td>
-          <td><%= l(day.finished_at.floor_to(15.minutes), format: :time) if day.finished_at.present? %></td>
+          
+          <td><%= l(day.finished_at.floor_to(15.minutes), format: :hour) if day.finished_at.present? %></td>
+          <td><%= l(day.finished_at.floor_to(15.minutes), format: :min) if day.finished_at.present? %></td>
+          <td><% if btn_text == "退勤" %>
+              <%= link_to "#{btn_text}", user_attendance_path(@user, day), method: :patch, class: "btn btn-primary btn-attendance" %>
+            <% end %></td>
           <td>
             <% if day.started_at.present? && day.finished_at.present? %>
               <%= str_times = working_times(day.started_at, day.finished_at) %>
@@ -96,12 +103,13 @@
           <td></td>
           <td></td>
           <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
           <td>
             <% if day.attendance_chg_status == "申請中" %>
             <%= day.instructor %>さんへ申請中
+            <% elsif day.attendance_chg_status == "承認" %>
+            <%= day.instructor %>さんから承認されました。
+            <% elsif day.attendance_chg_status == "否認" %>
+            <%= day.instructor %>さんから否認されました。
             <% end %></td>
         </tr>
       <% end %>
@@ -129,3 +137,4 @@
 
 <!-- モーダルウィンドウ表示 -->
  <div id="attendance_chg_req" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
+ <div id="edit_overtime_application_req" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
