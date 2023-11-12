@@ -27,6 +27,9 @@ Rails.application.routes.draw do
       # 残業申請
       get 'attendances/edit_overtime_application_req' 
       patch 'attendances/update_overtime_application_req'
+      # 申請された上長ユーザー画面
+      get 'attendances/edit_overtime_applied_req'
+      patch 'attendances/update_overtime_applied_req'
     end
     collection do
       # CSVインポート

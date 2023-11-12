@@ -88,14 +88,31 @@ class AttendancesController < ApplicationController
   
   def edit_overtime_application_req
     @user = User.find(params[:id])
-    
+    @date = params[:date].to_date
+    @attendance = @user.attendances.find_by(worked_on: @date )
   end 
   
   def update_overtime_application_req
-    @user = User.find(params[:id])
-    @date = params[:date]
+    @attendance = Attendance.where(user_id: @user.id, worked_on: @date)
+    
+    @attendance.overtime_at = params[:overtime_at]
+    @attendance.overtime_note = params[:overtime_note]
+    @attendance.new_instructor = params[:new_instructor]
+    @attendance.workedhours = params[:workedhours]
+    @attendance.overtime_hours = params[:overtime_hours]
+    
+    @attendance.save
+    redirect_to user_url
   end
+ 
+  def edit_overtime_applied_req
+      @user = User.find(params[:id])
+      @applicants = Attendance.where(attendance_chg_status: APPROVAL_STS_APL, instructor: current_user )
+  end  
   
+  def update_overtime_applied_req
+    @user = User.find(params[:user_id])
+  end  
   
 def update_one_month
   ActiveRecord::Base.transaction do
@@ -143,5 +160,7 @@ end
     params.require(:user).permit(attendances: [:attendance_chg_status, :chg_permission])[:attendances]
    end
    
-   
+   def attendance_overtime_application_req
+    params.require(:user) .permit(attendances: [:overtime_at, :overtime_note, :workedhours, :overtime_hours])[:attendances]
+   end  
 end

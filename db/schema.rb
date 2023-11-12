@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20231014115129) do
+ActiveRecord::Schema.define(version: 20231105100023) do
 
   create_table "add_create_to_attendances", force: :cascade do |t|
     t.integer "attendance_nextday"
@@ -33,6 +33,12 @@ ActiveRecord::Schema.define(version: 20231014115129) do
     t.datetime "chg_started_at"
     t.datetime "chg_finished_at"
     t.boolean "chg_permission"
+    t.time "overtime_at"
+    t.string "overtime_note"
+    t.string "new_instructor"
+    t.datetime "workedhours"
+    t.datetime "overtime_hours"
+    t.string "applicants"
     t.index ["user_id"], name: "index_attendances_on_user_id"
   end
 

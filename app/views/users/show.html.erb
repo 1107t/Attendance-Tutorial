@@ -20,13 +20,20 @@
 </div>
 
 <% if current_user.superior %>
-  <%= link_to "【所属長承認申請のお知らせ】", "#" %><br/>　
+  <%= link_to "【所属長承認申請のお知らせ】", "#" %>
+  <br/>　
   <%= link_to "【勤怠変更申請のお知らせ】", attendances_show_attendance_chg_req_user_path, remote: true %>
   <% if  @attendance_chg_req_sum > 0 %>
-  <span><%= @attendance_chg_req_sum %>件の通知があります。</span><br/>
+  <span><%= @attendance_chg_req_sum %>件の通知があります。</span>
   <% end %>
-  <%= link_to "【残業申請のお知らせ】", "#" %><br/>　
+  <br/>
+  <%= link_to "【残業申請のお知らせ】", attendances_edit_overtime_applied_req_user_path, remote: true %><br/>　
+  <% if  @attendance_chg_req_sum > 0 %>
+  <span><%= @attendance_chg_req_sum %>件の通知があります。</span>
+  <% end %>
+  <br/>
 <% end %>
+
 
 <div class="btn-users-show">
   <%= link_to "勤怠を編集", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-info" %>
@@ -126,9 +133,9 @@
         <td colspan="1"></td>
         <td colspan="4"></td>
         <td colspan="1"><%= form_with model: @user do |f| %>
-        <%= f.select :faculty, [ ["経済学部", "経済学部"], ["法学部", "法学部"], ["医学部", "医学部"]], include_blank: "選択して下さい" %>
+        <%= f.select :instructor, [["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], include_blank: "選択して下さい" %>
         <%= f.submit '送信'%>
-      <% end %> </td>
+        <% end %> </td>
       </tr>
       
     </tfoot>  
@@ -138,3 +145,4 @@
 <!-- モーダルウィンドウ表示 -->
  <div id="attendance_chg_req" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
  <div id="edit_overtime_application_req" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
+ <div id="edit_overtime_applied_req" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
