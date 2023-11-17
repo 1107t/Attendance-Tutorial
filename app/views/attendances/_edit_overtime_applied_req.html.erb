@@ -9,12 +9,13 @@
         </button>
     </div> 
     <div class="modal-body">
-    <%= form_with(model: @attendance, url: attendances_update_overtime_applied_req_user_path(@user), local: true, method: :patch) do |f| %>
-     <% @applicants.each do |applicant| %>
-      <div class="center">
-      <h3 class="modal-title">【からの残業申請】</h3>
-      </div>
-       <table class="table table-bordered table-condensed table-hover" id="table-attendances">
+     <%= form_with(model: @attendance, url: attendances_update_overtime_applied_req_user_path(@user), local: true, method: :patch) do |f| %>
+      <% @applicants.each do |applicant| %>
+      <% user = User.find(applicant.user_id) %>
+       <div class="center">
+       <h3 class="modal-title">【<%= user.name %>からの残業申請】</h3>
+       </div>
+         <table class="table table-bordered table-condensed table-hover" id="table-attendances">
           <thead>
           <tr>
             <th rowspan="1">日付</th>
@@ -31,25 +32,32 @@
           </thead>
           
           <tbody>
-           
+            <% css_class =
+               case $days_of_the_week[applicant.worked_on.wday]
+               when '土'
+                "saturday_info"
+               when '日'
+                "sunday_info"
+               end 
+            %>
           
-              <tr>
-                <td rowspan="2"></td>
-                <td rowspan="2"></td>
-                <td colspan="3"></td>
-                <td colspan="4"></td>
-                <td colspan="2"></td>
-                <td colspan='6'></td>
-                <td colspan='3'><%= f.select :new_instructor, [["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], include_blank: "選択して下さい" %></td>
-                <td colspan="1"><%= check_box_tag(:chg_permission) %></td>
-                <td colspan="3"></td>
-              </tr>
+           <tr>
+             <td rowspan="2"><%= l(applicant.worked_on, format: :short) %></td>
+             <td class = "<%= css_class %>" rowspan="2"><%= $days_of_the_week[applicant.worked_on.wday] %></td>
+             <td colspan="3"><%= l(applicant.overtime_at, format: :time) %></td>
+             <td colspan="4"><%= format_basic_info(@user.designated_work_end_time) %></td>
+             <td colspan="2"><%= format_basic_info(applicant.overtime_at - @user.designated_work_end_time) %></td>
+             <td colspan='6'><%= applicant.overtime_note %></td>
+             <td colspan='3'><%= f.select :new_instructor, [["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], include_blank: "選択して下さい" %></td>
+             <td colspan="1"><%= check_box_tag(:chg_permission) %></td>
+             <td colspan="3"><%= link_to "確認", "#", class: "btn btn-primary" %></td>
+           </tr>
             
           </tbody>  
          
          </table>
+      <% end %>   
      <% end %>   
-    <% end %>   
    </div>  
   </div>
 </div>

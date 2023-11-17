@@ -9,7 +9,7 @@
         </button>
     </div> 
     <div class="modal-body">
-     <%= form_with(model: @attendance, url: attendances_update_overtime_application_req_user_path(@user), local: true, method: :patch) do |f| %>
+     <%= form_with(model: @attendance, url: attendances_update_overtime_application_req_user_path(@user, date: @date), local: true, method: :patch) do |f| %>
       <div class="center">
       <h3 class="modal-title">【残業申請】</h3>
       </div>
@@ -43,7 +43,8 @@
             <td colspan="5"><%= f.time_field :overtime_at, class: "form-control" %></td>
             <td colspan="1"><%= check_box_tag(:attendance_nextday) %></td>
             <td colspan='6'><%= f.text_field :overtime_note, class: "form-control" %></td>
-            <td colspan='3'><%= f.select :new_instructor,[["桜木花道", "桜木花道"], ["赤城", "赤城"], ["濱本　亮", "濱本　亮"]], include_blank: "選択して下さい" %></td>
+            <td colspan='3'>
+                <%= f.collection_select :new_instructor,@superiors, :name, :name, {include_blank: "選択して下さい"}, {require: true} %></td>
           </tr> 
           </tbody>  
          </table>
@@ -52,5 +53,3 @@
         </div>
       <% end %>
     </div>  
-  </div>
-</div>

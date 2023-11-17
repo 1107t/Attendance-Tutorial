@@ -90,24 +90,28 @@ class AttendancesController < ApplicationController
     @user = User.find(params[:id])
     @date = params[:date].to_date
     @attendance = @user.attendances.find_by(worked_on: @date )
+    @superiors = User.where(superior: true).where.not(name: @user.name)
   end 
   
   def update_overtime_application_req
-    @attendance = Attendance.where(user_id: @user.id, worked_on: @date)
+    @user = User.find(params[:id])
+    @date = params[:date]
+    @attendance = Attendance.find_by(user_id: @user.id, worked_on: @date)
     
-    @attendance.overtime_at = params[:overtime_at]
-    @attendance.overtime_note = params[:overtime_note]
-    @attendance.new_instructor = params[:new_instructor]
-    @attendance.workedhours = params[:workedhours]
-    @attendance.overtime_hours = params[:overtime_hours]
+    @attendance.overtime_at = params[:attendance][:overtime_at]
+    @attendance.overtime_note = params[:attendance][:overtime_note]
+    @attendance.new_instructor = params[:attendance][:new_instructor]
+    @attendance.workedhours = params[:attendance][:workedhours]
+    @attendance.overtime_hours = params[:attendance][:overtime_hours]
     
     @attendance.save
+    flash[:success] = "残業申請を致しました。"
     redirect_to user_url
   end
  
   def edit_overtime_applied_req
       @user = User.find(params[:id])
-      @applicants = Attendance.where(attendance_chg_status: APPROVAL_STS_APL, instructor: current_user )
+      @applicants = Attendance.where( new_instructor: current_user.name )
   end  
   
   def update_overtime_applied_req

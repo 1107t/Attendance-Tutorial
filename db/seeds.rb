@@ -22,9 +22,14 @@ User.create!(name: "Sample User",
             password: "password",
             password_confirmation: "password",
             superior: true) 
-User.create(name: "上長B",
-            email: "super-1@email.com",
+ User.create(name: "上長B",
+            email: "super-2@email.com",
             password: "password",
             password_confirmation: "password",
-            superior: true)                 
+            superior: true) 
+ User.create(name: "桜木花道",
+            email: "sakuragi@email.com",
+            password: "password",
+            password_confirmation: "password",
+            superior: true)               
 end
