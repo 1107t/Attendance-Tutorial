@@ -27,9 +27,9 @@
   <span><%= @attendance_chg_req_sum %>件の通知があります。</span>
   <% end %>
   <br/>
-  <%= link_to "【残業申請のお知らせ】", attendances_edit_overtime_applied_req_user_path, remote: true %><br/>　
-  <% if  @attendance_chg_req_sum > 0 %>
-  <span><%= @attendance_chg_req_sum %>件の通知があります。</span>
+  <%= link_to "【残業申請のお知らせ】", attendances_edit_overtime_applied_req_user_path, remote: true %>　
+  <% if  @overtime_req_sum > 0 %>
+  <span><%= @overtime_req_sum %>件の通知があります。</span><br/>
   <% end %>
   <br/>
 <% end %>

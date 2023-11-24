@@ -9,4 +9,14 @@ module ApplicationHelper
       page_name + " | " + base_title # 文字列を連結して返す
     end
   end
+  
+  
+  def calc_overtime(overtime, endtime)
+    a = (overtime.min.to_f / 60) + overtime.hour
+    b = (endtime.min.to_f / 60) + endtime.hour
+    
+    out_overtime = a - b
+    
+    return out_overtime
+  end 
 end

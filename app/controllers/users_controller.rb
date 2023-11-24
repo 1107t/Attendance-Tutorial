@@ -36,6 +36,8 @@ class UsersController < ApplicationController
     @superior = User.where(superior: true).where.not(id: current_user.id)
     # 勤怠変更申請件数の取得
     @attendance_chg_req_sum = User.joins(:attendances).where(attendances: {attendance_chg_status: "申請中", instructor: @user.name}).count
+    # 残業申請件数の習得
+    @overtime_req_sum = User.joins(:attendances).where(attendances: {overtime_status_req: "申請中", new_instructor: @user.name}).count
   end
 
   def new

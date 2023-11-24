@@ -103,6 +103,7 @@ class AttendancesController < ApplicationController
     @attendance.new_instructor = params[:attendance][:new_instructor]
     @attendance.workedhours = params[:attendance][:workedhours]
     @attendance.overtime_hours = params[:attendance][:overtime_hours]
+    @attendance.overtime_status_req = "申請中"
     
     @attendance.save
     flash[:success] = "残業申請を致しました。"
@@ -115,7 +116,51 @@ class AttendancesController < ApplicationController
   end  
   
   def update_overtime_applied_req
-    @user = User.find(params[:user_id])
+    byebug
+    ActiveRecord::Base.transaction do
+     attendance_update_overtime_applied_req_params.each do |id, item|
+     # 指示者確認㊞ が設定されている場合のみ、変更有効
+     # 指示者確認㊞ を選択している場合のみチェックを行う
+     if item[:chg_permission] == "1"
+       
+      
+         
+        attendance = Attendance.find(id)
+        case item[:overtime_status_req] 
+          when "申請中"
+          
+          when "承認"
+          attendance.overtime_at = params[:attendance][:overtime_at]
+          attendance.overtime_note = params[:attendance][:overtime_note]
+          attendance.workedhours = params[:attendance][:workedhours]
+          attendance.overtime_hours = params[:attendance][:overtime_hours]
+          attendance.attendance_chg_status = APPROVAL_STS_OK
+          attendance.chg_permission = true
+          when "否認", "なし"
+          attendance.overtime_at = nil
+          attendance.workedhours = nil
+          attendance.overtime_hours = nil
+          attendance.overtime_note = nil
+          attendance.attendance_chg_status = APPROVAL_STS_NG
+          attendance.chg_permission = true
+          else
+          
+        end
+        attendance.save
+     end  
+     end
+    
+  
+        flash[:success] = "勤怠申請変更の支持者確認を更新しました。"
+        redirect_to user_url(date: params[:date])
+      rescue ActiveRecord::RecordInvalid
+        flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
+        redirect_to attendances_edit_one_month_user_url(date: params[:date])
+      
+      rescue RuntimeError
+        flash[:danger] = "支持者確認㊞のみでの更新は出来ません。"
+        redirect_to attendances_edit_one_month_user_url(date: params[:date])
+    　end  _url(date: params[:date])
   end  
   
 def update_one_month
@@ -142,15 +187,15 @@ def update_one_month
      end  
     end 
   end
-  flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
+ flash[:success] = "1ヶ月分の勤怠情報を更新しました。"
   redirect_to user_url(date: params[:date])
 rescue ActiveRecord::RecordInvalid
   flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
   redirect_to attendances_edit_one_month_user_url(date: params[:date])
-  
+          
 rescue RuntimeError
   flash[:danger] = "出勤時間、または退勤時間のみでの更新は出来ません。"
-  redirect_to attendances_edit_one_month_user_url(date: params[:date])
+ redirect_to attendances_edit_one_month_user_url(date: params[:date])
 end  
   
   
@@ -166,5 +211,10 @@ end
    
    def attendance_overtime_application_req
     params.require(:user) .permit(attendances: [:overtime_at, :overtime_note, :workedhours, :overtime_hours])[:attendances]
-   end  
+   end 
+   
+   def attendance_update_overtime_applied_req_params
+    params.require(:user) .permit(attendances: [:overtime_at, :overtime_note, :workedhours, :overtime_hours])[:attendances]
+   end 
+  end
 end
