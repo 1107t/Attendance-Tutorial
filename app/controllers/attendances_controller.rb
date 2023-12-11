@@ -42,7 +42,7 @@ class AttendancesController < ApplicationController
   end
   
   def update_attendance_chg_req
-    ActiveRecord::Base.transaction do
+   ActiveRecord::Base.transaction do
     attendance_chg_req_params.each do |id, item|
      # 指示者確認㊞ が設定されている場合のみ、変更有効
      # 指示者確認㊞ を選択している場合のみチェックを行う
@@ -72,7 +72,7 @@ class AttendancesController < ApplicationController
         attendance.save
      end  
     end 
-  end
+   end
     flash[:success] = "勤怠申請変更の支持者確認を更新しました。"
     redirect_to user_url(date: params[:date])
   rescue ActiveRecord::RecordInvalid
@@ -82,7 +82,7 @@ class AttendancesController < ApplicationController
   rescue RuntimeError
     flash[:danger] = "支持者確認㊞のみでの更新は出来ません。"
     redirect_to attendances_edit_one_month_user_url(date: params[:date])
-　end  
+　
     
   end   
   
@@ -112,55 +112,41 @@ class AttendancesController < ApplicationController
  
   def edit_overtime_applied_req
       @user = User.find(params[:id])
-      @applicants = Attendance.where( new_instructor: current_user.name )
+      #@applicants = Attendance.where( overtime_status_req: "申請中", new_instructor: current_user.name )
+      @applicants = User.joins(:attendances).where( attendances: {overtime_status_req: "申請中", new_instructor: current_user.name} ).distinct
   end  
   
   def update_overtime_applied_req
-    byebug
     ActiveRecord::Base.transaction do
-     attendance_update_overtime_applied_req_params.each do |id, item|
-     # 指示者確認㊞ が設定されている場合のみ、変更有効
-     # 指示者確認㊞ を選択している場合のみチェックを行う
-     if item[:chg_permission] == "1"
-       
-      
+      attendance_update_overtime_applied_req_params.each do |id, item|
+       # 指示者確認㊞ が設定されている場合のみ、変更有効
+       # 指示者確認㊞ を選択している場合のみチェックを行う
+       if item[:chg_permission] == "1"
          
-        attendance = Attendance.find(id)
-        case item[:overtime_status_req] 
+        
+           
+          attendance = Attendance.find(id)
+          case item[:overtime_status_req] 
           when "申請中"
-          
+            
           when "承認"
-          attendance.overtime_at = params[:attendance][:overtime_at]
-          attendance.overtime_note = params[:attendance][:overtime_note]
-          attendance.workedhours = params[:attendance][:workedhours]
-          attendance.overtime_hours = params[:attendance][:overtime_hours]
-          attendance.attendance_chg_status = APPROVAL_STS_OK
-          attendance.chg_permission = true
+            attendance.overtime_status_req = "承認"
           when "否認", "なし"
-          attendance.overtime_at = nil
-          attendance.workedhours = nil
-          attendance.overtime_hours = nil
-          attendance.overtime_note = nil
-          attendance.attendance_chg_status = APPROVAL_STS_NG
-          attendance.chg_permission = true
+            attendance.overtime_status_req = "否認"
           else
-          
-        end
-        attendance.save
-     end  
-     end
+            
+          end
+          attendance.save
+       end
+     end 
+   end
     
   
-        flash[:success] = "勤怠申請変更の支持者確認を更新しました。"
-        redirect_to user_url(date: params[:date])
-      rescue ActiveRecord::RecordInvalid
-        flash[:danger] = "無効な入力データがあった為、更新をキャンセルしました。"
-        redirect_to attendances_edit_one_month_user_url(date: params[:date])
-      
-      rescue RuntimeError
-        flash[:danger] = "支持者確認㊞のみでの更新は出来ません。"
-        redirect_to attendances_edit_one_month_user_url(date: params[:date])
-    　end  _url(date: params[:date])
+  flash[:success] = "残業申請の支持者確認㊞を更新しました。"
+   redirect_to user_url
+  rescue ActiveRecord::RecordInvalid 
+   flash[:danger] = "残業申請の支持者確認㊞を更新できませんでした。"  
+   redirect_to user_url    
   end  
   
 def update_one_month
@@ -198,6 +184,31 @@ rescue RuntimeError
  redirect_to attendances_edit_one_month_user_url(date: params[:date])
 end  
   
+def edit_master_req
+  @user = User.find(params[:id])
+  
+end 
+
+def update_master_req
+  #byebug
+  @user = User.find(params[:id])
+  @month = params[:date].to_date.month 
+  @year = params[:date].to_date.year
+  @monthly_attendance = MonthlyAttendance.find_or_create_by(user_id: @user.id, month: @month, year: @year)
+  if @montly_attendance
+    @monthly_attendance.instructor = params[:user][:instructor]
+    @monthly_attendance.master_status = "申請中"
+      
+    @monthly_attendance.save
+    flash[:success] = "一か月分の勤怠申請を行いました。"
+  else
+    flash[:danger] = "一か月分の勤怠申請に失敗しました。"
+  end  
+  
+  redirect_to user_url
+end  
+  
+  
   
   private
     
@@ -214,7 +225,6 @@ end
    end 
    
    def attendance_update_overtime_applied_req_params
-    params.require(:user) .permit(attendances: [:overtime_at, :overtime_note, :workedhours, :overtime_hours])[:attendances]
+    params.require(:user) .permit(attendances: [:overtime_status_req, :chg_permission])[:attendances]
    end 
-  end
 end

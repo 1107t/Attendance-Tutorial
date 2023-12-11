@@ -30,6 +30,10 @@ Rails.application.routes.draw do
       # 申請された上長ユーザー画面
       get 'attendances/edit_overtime_applied_req'
       patch 'attendances/update_overtime_applied_req'
+      #所属長承認申請画面
+      get 'attendances/edit_master_req'
+      patch 'attendances/update_master_req'
+      
     end
     collection do
       # CSVインポート

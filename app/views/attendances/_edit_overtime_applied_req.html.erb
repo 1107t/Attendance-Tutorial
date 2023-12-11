@@ -9,11 +9,11 @@
         </button>
     </div> 
     <div class="modal-body">
-      <%= form_with(model: @attendance, url: attendances_update_overtime_applied_req_user_path(@user), local: true, method: :patch) do |f| %>
+      <%= form_with(model: @user, url: attendances_update_overtime_applied_req_user_path(@user), local: true, method: :patch) do |f| %>
        <% @applicants.each do |applicant| %>
-         <% user = User.find(applicant.user_id) %>
+         
            <div class="center">
-           <h3 class="modal-title">【<%= user.name %>からの残業申請】</h3>
+           <h3 class="modal-title">【<%= applicant.name %>からの残業申請】</h3>
            </div>
              <table class="table table-bordered table-condensed table-hover" id="table-attendances">
               <thead>
@@ -31,10 +31,12 @@
             
               </thead>
               
-              <tbody>
-               <%= f.fields_for "attendances[]", applicant do |attendance| %>   
+             <tbody>
+              <% overtime_attendances = Attendance.where( user_id: applicant.id, overtime_status_req: "申請中", new_instructor: current_user.name ) %>
+              <% overtime_attendances.each do |day| %>
+               <%= f.fields_for "attendances[]", day do |attendance| %>   
                 <% css_class =
-                   case $days_of_the_week[applicant.worked_on.wday]
+                   case $days_of_the_week[day.worked_on.wday]
                    when '土'
                     "saturday_info"
                    when '日'
@@ -43,18 +45,19 @@
                 %>
               
                <tr>
-                 <td rowspan="2"><%= l(applicant.worked_on, format: :short) %></td>
-                 <td class = "<%= css_class %>" rowspan="2"><%= $days_of_the_week[applicant.worked_on.wday] %></td>
-                 <td colspan="3"><%= l(applicant.overtime_at, format: :time) %></td>
+                 <td rowspan="2"><%= l(day.worked_on, format: :short) %></td>
+                 <td class = "<%= css_class %>" rowspan="2"><%= $days_of_the_week[day.worked_on.wday] %></td>
+                 <td colspan="3"><%= l(day.overtime_at, format: :time) %></td>
                  <td colspan="4"><%= format_basic_info(@user.designated_work_end_time) %></td>
-                 <td colspan="2"><%= calc_overtime(applicant.overtime_at, @user.designated_work_end_time) %></td>
-                 <td colspan='6'><%= applicant.overtime_note %></td>
-                 <td colspan='3'><%= attendance.select :new_instructor, [["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], include_blank: "選択して下さい" %></td>
-                 <td colspan="1"><%= check_box_tag(:chg_permission) %></td>
-                 <td colspan="3"><%= link_to "確認", show_attendance_status_req_user_path(applicant,date: applicant.worked_on.beginning_of_month), class: "btn btn-primary" %></td>
+                 <td colspan="2"><%= format("%.2f", calc_overtime(day.overtime_at, @user.designated_work_end_time)) %></td>
+                 <td colspan='6'><%= day.overtime_note %></td>
+                 <td colspan='3'><%= attendance.select :overtime_status_req, [["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], include_blank: "選択して下さい" %></td>
+                 <td colspan="1"><%= attendance.check_box :chg_permission %></td>
+                 <td colspan="3"><%= link_to "確認", show_attendance_status_req_user_path(day,date: day.worked_on.beginning_of_month), class: "btn btn-primary" %></td>
                </tr>
                <% end %> 
-              </tbody>  
+              <% end %> 
+             </tbody>  
              
              </table>
             
