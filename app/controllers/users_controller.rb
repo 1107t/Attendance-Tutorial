@@ -11,7 +11,7 @@ class UsersController < ApplicationController
     
   end
   
-    
+  
   
  def csv_import
    if params[:file].present?
@@ -40,6 +40,10 @@ class UsersController < ApplicationController
     @overtime_req_sum = User.joins(:attendances).where(attendances: {overtime_status_req: "申請中", new_instructor: @user.name}).count
     # 所属長承認申請の取得
     @master_req_sum = User.joins(:monthly_attendances).where(monthly_attendances: {master_status: "申請中", instructor: @user.name}).count
+    @month = @first_day.month 
+    @year = @first_day.year
+    @monthly_attendance = MonthlyAttendance.where(user_id: @user.id, month: @month, year: @year)
+  
   end
 
   def new
@@ -90,7 +94,10 @@ class UsersController < ApplicationController
     @attendance_chg_req_sum = User.joins(:attendances).where(attendances: {attendance_chg_status: "申請中", instructor: @user.name}).count
   end   
   
-  
+  def show_new_master_req
+    @worked_sum = @attendances.where.not(started_at: nil).count
+    @superior = User.where(superior: true).where.not(id: current_user.id)
+  end
 
   def update_basic_info
     if @user.update_attributes(basic_info_params)
@@ -111,7 +118,9 @@ class UsersController < ApplicationController
 
   private
   
-    
+    def show_new_master_req
+      params.require(:user).permit(:users [:name])
+    end  
 
     def user_params
       params.require(:user).permit(:name, :email, :affiliation, :employee_number, :uid, :password, 

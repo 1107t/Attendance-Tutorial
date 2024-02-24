@@ -1,0 +1,51 @@
+<% provide(:title , "勤怠ログ") %>
+<h1>勤怠ログ</h1>
+<table class= "table table-bordered table-condensed table-hover" id="users">
+  
+
+  <thead>
+   <%= form_with(model: @user, url: attendances_serch_log_user_path, local: true, method: :post ) do |f| %>
+      
+    <%= f.month_field :month, required: true %>
+         
+    
+  
+  
+     <%= f.submit '検索', class: "btn btn-sm btn-primary" %>
+   <% end %>
+    
+   
+
+  <thead>
+    <tr>
+      <th>日付</th>
+      <th>変更前出社時間</th>
+      <th>変更前退社時間</th>
+      <th>変更後出社</th>
+      <th>変更後退社</th>
+      <th>支持者</th>
+      <th>承認日</th>
+    </tr>
+  </thead>
+  <tbody>
+   
+    <% @attendances.each do |attendance| %>
+     <% if attendance.save_day.present? %>
+      <tr>
+        <td><%= l(attendance.worked_on, format: :short) %></td>
+        <td><%= format_basic_info(attendance.before_work_time) if attendance.before_work_time.present? %></td>
+        <td><%= format_basic_info(attendance.after_work_time) if attendance.after_work_time.present? %></td>
+        <td><%= format_basic_info(attendance.started_at) if attendance.started_at.present? %></td>
+        <td><%= format_basic_info(attendance.finished_at) if attendance.finished_at.present? %></td>
+        <td><%= (attendance.instructor) %></td>
+        <td><%= l(attendance.save_day, format: :short) %></td>
+      </tr>
+     <% end %>  
+    <% end %>
+  </tbody>
+
+     
+  
+  
+  
+</table>

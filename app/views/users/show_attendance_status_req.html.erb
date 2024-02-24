@@ -11,7 +11,7 @@
     
     <tr>
       <td>所属：<%= @user.department.present? ? @user.department : "未所属" %></td>
-      <td>名前：<%= @user.name %></td>
+      <td>名前：<%= (@user.name)%></td>
       <td>出勤日数：<%= @worked_sum %>日</td>
       <td>月末日：<%= l(@last_day, format: :short) %></td>
     </tr>
@@ -80,7 +80,19 @@
           <td></td>
           <td>
             <% if day.attendance_chg_status == "申請中" %>
-            <%= day.instructor %>さんへ申請中
+                 勤怠変更申請:<%= day.instructor %>さんへ申請中
+                <% elsif day.attendance_chg_status == "承認" %>
+                勤怠変更申請:<%= day.instructor %>さんから承認されました。
+                <% elsif day.attendance_chg_status == "否認" %>
+                 勤怠変更申請:<%= day.instructor %>さんから否認されました。
+                <% end %>
+                    
+                <% if day.overtime_status_req == "申請中" %>
+                残業申請:<%= day.new_instructor %>さんへ申請中
+                <% elsif day.overtime_status_req == "承認" %>
+                 残用申請:<%= day.new_instructor %>さんから承認されました。
+                <% elsif day.overtime_status_req == "否認" %>
+                 残業申請:<%= day.new_instructor %>さんから否認されました。
             <% end %></td>
         </tr>
       <% end %>

@@ -16,6 +16,9 @@ Rails.application.routes.draw do
       patch 'update_basic_info'
       # 出勤中社員一覧
       get 'kintai_member'
+      # 勤怠ログ
+      get 'attendances/kintai_log'
+      post 'attendances/serch_log'
       # 勤怠編集
       get 'attendances/edit_one_month'
       patch 'attendances/update_one_month'
@@ -30,10 +33,13 @@ Rails.application.routes.draw do
       # 申請された上長ユーザー画面
       get 'attendances/edit_overtime_applied_req'
       patch 'attendances/update_overtime_applied_req'
-      #所属長承認申請画面
+      # 所属長承認申請画面
       get 'attendances/edit_master_req'
       patch 'attendances/update_master_req'
-      
+      # 一か月の勤怠申請更新(モーダルウィンドウ)
+      patch 'attendances/update_30days_req'
+      # csv出力
+      get 'attendances/new_csv_req'
     end
     collection do
       # CSVインポート

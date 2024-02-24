@@ -1,7 +1,9 @@
 class AttendancesController < ApplicationController
-  before_action :set_user, only: [:edit_one_month, :update_one_month]
+  before_action :set_user, only: [:edit_one_month, :update_one_month, :new_csv_req, :kintai_log, :serch_log ]
   before_action :logged_in_user, only: [:update, :edit_one_month]
-  before_action :set_one_month, only: :edit_one_month
+  before_action :set_one_month, only: [:edit_one_month, :new_csv_req, :kintai_log]
+  
+  
   
   UPDATE_ERROR_MSG = "勤怠登録に失敗しました。やり直してください。"
   
@@ -35,6 +37,20 @@ class AttendancesController < ApplicationController
     @superiors = User.where(superior: true).where.not(id: current_user.id)
   end  
   
+  def kintai_log
+    
+  end
+  
+  def serch_log
+    if params[:user][:month].present?
+      @day = (params[:user][:month] + "-01").to_date
+      redirect_to attendances_kintai_log_user_url(date: @day)
+    else
+      flash[:danger] = "勤怠ログの取得に失敗しました。"
+      redirect_to @user
+    end
+  end  
+  
   def show_attendance_chg_req
     @user = User.find(params[:id])
     @applicants = User.joins(:attendances).where(attendances: {attendance_chg_status: APPROVAL_STS_APL, instructor: @user.name}).distinct
@@ -55,6 +71,11 @@ class AttendancesController < ApplicationController
           when "申請中"
           
           when "承認"
+          unless attendance.chg_permission      
+             attendance.before_work_time = attendance.started_at
+             attendance.after_work_time = attendance.finished_at
+          end
+          attendance.save_day = Time.now
           attendance.started_at = attendance.chg_started_at
           attendance.finished_at = attendance.chg_finished_at
           attendance.chg_started_at = nil
@@ -65,7 +86,6 @@ class AttendancesController < ApplicationController
           attendance.chg_started_at = nil
           attendance.chg_finished_at = nil
           attendance.attendance_chg_status = APPROVAL_STS_NG
-          attendance.chg_permission = true
           else
           
         end
@@ -159,9 +179,12 @@ def update_one_month
        
       
         if (item[:started_at].blank? && item[:finished_at].present?) ||
-           (item[:started_at].present? && item[:finished_at].blank?)
+           (item[:started_at].present? && item[:finished_at].blank?) ||
+           (item[:started_at] > item[:finished_at])
+           
          
-           raise RuntimeError  
+           raise RuntimeError 
+        
         end   
         attendance = Attendance.find(id)
         attendance.chg_started_at = item[:started_at]
@@ -180,34 +203,81 @@ rescue ActiveRecord::RecordInvalid
   redirect_to attendances_edit_one_month_user_url(date: params[:date])
           
 rescue RuntimeError
-  flash[:danger] = "出勤時間、または退勤時間のみでの更新は出来ません。"
+  flash[:danger] = "出勤時間、または退勤時間のみでの更新は出来ません、また退勤時間が出勤時間より大きい場合は更新は出来ません。"
  redirect_to attendances_edit_one_month_user_url(date: params[:date])
+ 
+
 end  
-  
+
+
+
 def edit_master_req
   @user = User.find(params[:id])
+  @applicants = User.joins(:monthly_attendances).where( monthly_attendances: {master_status: "申請中", instructor: current_user.name } ).distinct
   
 end 
 
 def update_master_req
   #byebug
   @user = User.find(params[:id])
-  @month = params[:date].to_date.month 
-  @year = params[:date].to_date.year
+  @date = params[:date].to_date
+  @month = @date.month 
+  @year = @date.year
   @monthly_attendance = MonthlyAttendance.find_or_create_by(user_id: @user.id, month: @month, year: @year)
-  if @montly_attendance
-    @monthly_attendance.instructor = params[:user][:instructor]
-    @monthly_attendance.master_status = "申請中"
-      
-    @monthly_attendance.save
-    flash[:success] = "一か月分の勤怠申請を行いました。"
-  else
-    flash[:danger] = "一か月分の勤怠申請に失敗しました。"
-  end  
   
+  if @monthly_attendance 
+   # 申請先の上長
+   @monthly_attendance.instructor = params[:user][:instructor]
+   # 申請ステータス
+   @monthly_attendance.master_status = "申請中"
+   @monthly_attendance.save
+  flash[:success] = "一か月分勤怠申請しました。"
+  else
+   flash[:danger] = "一か月分勤怠申請に失敗しました。"  
+  end    
+  
+
   redirect_to user_url
+
 end  
   
+def update_30days_req
+    ActiveRecord::Base.transaction do
+      monthly_attendances_update_30days_req_params.each do |id, item|
+      
+       if item[:chg_permission] == "1"
+         
+        
+           
+          monthly_attendances = MonthlyAttendance.find(id)
+          case item[:master_status] 
+          when "申請中"
+            
+          when "承認"
+            monthly_attendances.master_status = "承認"
+          when "否認", "なし"
+            monthly_attendances.master_status = "否認"
+          else
+            
+          end
+          monthly_attendances.save
+       end
+     end 
+    end 
+  flash[:success] = "一か月分勤怠更新しました。"
+  redirect_to user_url
+end  
+
+def new_csv_req
+    
+    respond_to do |format|
+      format.html
+      format.csv do |csv|
+        send_posts_csv(@attendances)
+      end
+    end
+end
+
   
   
   private
@@ -227,4 +297,39 @@ end
    def attendance_update_overtime_applied_req_params
     params.require(:user) .permit(attendances: [:overtime_status_req, :chg_permission])[:attendances]
    end 
+   
+   def monthly_attendance_update_master_req_params
+    params.require(:user) .permit(attendances: [:month, :year])[:attendances]
+   end
+   
+   def monthly_attendances_update_30days_req_params
+    params.require(:user) .permit(monthly_attendances: [:master_status, :chg_permission])[:monthly_attendances]
+   end  
+   
+   def new_csv_req_params
+    params.require(:user) .permit(attendances: [:started_at, :finished_at])[:attendances]   
+   end    
+   
+   def kintai_log_params
+    params.require(:user) .permit(attendances: [:before_work_time, :after_work_time, :save_day])[:attendances]   
+   end
+   
+   def send_posts_csv(attendances)
+    csv_data = CSV.generate do |csv|
+      column_names = %w(日付 出勤時間 退勤時間)
+      csv << column_names
+      attendances.each do |attendance|
+        start_t = attendance.started_at.present?? l(attendance.started_at, format: :time):nil 
+        finish_t = attendance.finished_at.present?? l(attendance.finished_at, format: :time):nil 
+        column_values = [
+          l(attendance.worked_on, format: :short),
+          start_t,
+          finish_t
+        ]
+        csv << column_values
+      end
+    end
+    send_data(csv_data, filename: "投稿一覧.csv")
+   end
+   
 end

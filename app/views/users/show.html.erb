@@ -48,8 +48,8 @@
 
     <div class="btn-users-show">
       <%= link_to "勤怠を編集", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-info" %>
-      <%= link_to "CSV出力", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-info" %>
-      <%= link_to "勤怠修正ログ(承認済み)", attendances_edit_one_month_user_path(date: @first_day), class: "btn btn-info" %>
+      <%= link_to "CSV出力", attendances_new_csv_req_user_path(format: :csv), class: "btn btn-info" %>
+      <%= link_to "勤怠修正ログ(承認済み)", attendances_kintai_log_user_path, class: "btn btn-info" %>
     </div>
     <div>
       <table class="table table-bordered table-condensed table-hover" id="table-attendances">
@@ -154,9 +154,25 @@
         <td colspan="1"></td>
         <td colspan="4"></td>
         <td colspan="1">
+        <% if @monthly_attendance.exists? %>    
+        <% @monthly_attendance.each do |monthly_attendance| %>    
+         <% case monthly_attendance.master_status %>
+            <% when "申請中" %>
+              所属長承認 <%= monthly_attendance.instructor %>へ申請中
+            <% when "承認" %>
+              所属長承認 <%= monthly_attendance.instructor %>から承認済
+            <% when "否認" %>
+              所属長承認 <%= monthly_attendance.instructor %>から否認
+            <% else %>
+              所属長承認 未
+            <% end %>
+            <% end %>
+            <% else %>
+            所属長承認 未
+            <% end %>
           <%= form_with(model: @user, url: attendances_update_master_req_user_path(date: @first_day), local: true, method: :patch) do |f| %>
-          所属長承認 未<br>
-           <%= f.collection_select :instructor, @superior, :name, :name, include_blank: "選択して下さい" %><br>
+          
+           <%= f.collection_select :instructor, @superior, :name, :name, {include_blank: "選択して下さい"}, {required: true} %><br>
           <%= f.submit '申請', class: "btn btn-lg btn-primary"%>
           <% end %>
         </td>

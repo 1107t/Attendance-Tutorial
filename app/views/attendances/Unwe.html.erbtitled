@@ -4,38 +4,37 @@
 <div class="modal-dialog modal-lg modal-dialog-center">
   <div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">×</span>
-        </button>
-    </div> 
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
     <div class="modal-body">
-     <%= form_with(model: @user, url: attendances_update_30days_req_user_path(@user), local: true, method: :patch) do |f| %>
+      <%= form_with(model: @monthly_attendance, url: attendances_update_master_req_user_path(@user), local: true, method: :patch) do |f| %>
         <% @applicants.each do |applicant| %>
-         <% @monthly_attendances = MonthlyAttendance.where(master_status: "申請中", instructor: current_user.name, user_id: applicant.id ) %>
+          <!-- 一ヶ月の勤怠申請者の取得 -->
+          <% @monthly_attendances = MonthlyAttendance.where(master_status: "申請中", instructor: current_user.name, user_id: applicant.id ) %>
+          <!-- 申請者の表示 -->
           <div class="center">
-          <h3 class="modal-title">【<%= applicant.name %>からの一か月分勤怠申請】</h3>
+            <h3 class="modal-title">【<%= applicant.name %>からの一か月分勤怠申請】</h3>
           </div>
-             <table class="table table-bordered table-condensed table-hover" id="table-attendances">
-              <thead>
+          <!-- 申請内容のテーブル表示 -->
+          <table class="table table-bordered table-condensed table-hover" id="table-attendances">
+            <thead>
               <tr>
                 <th rowspan="1">月</th>
                 <th colspan="5">支持者確認㊞</th>
                 <th colspan="3">変更</th>
                 <th colspan="5">勤怠を確認する</th>
               </tr>
-              
-            
-              </thead>
-              
-              <tbody>
-        
+            </thead>
+            <tbody>
               <% @monthly_attendances.each do |one_month_attendance| %>
                 <%= f.fields_for "monthly_attendances[]", one_month_attendance do |i| %>
                   <tr>
                     <td rowspan="2"><%= one_month_attendance.month %></td>
                     <td colspan='5'><%= i.select :master_status, [["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], include_blank: "選択して下さい" %></td>
                     <td colspan="3"><%= i.check_box :chg_permission %></td>
-                    <td colspan='5'><%= link_to "確認", show_attendance_status_req_user_path, class: "btn btn-primary" %></td>
+                    <td colspan='5'><%= link_to "確認", "#", class: "btn btn-primary" %></td>
                   </tr>
                   <%= i.hidden_field :month, :value => one_month_attendance.month.to_s %>
                   <%= i.hidden_field :year,  :value => one_month_attendance.year.to_s %>

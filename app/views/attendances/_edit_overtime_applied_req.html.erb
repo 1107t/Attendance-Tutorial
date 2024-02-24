@@ -32,31 +32,28 @@
               </thead>
               
              <tbody>
-              <% overtime_attendances = Attendance.where( user_id: applicant.id, overtime_status_req: "申請中", new_instructor: current_user.name ) %>
-              <% overtime_attendances.each do |day| %>
-               <%= f.fields_for "attendances[]", day do |attendance| %>   
-                <% css_class =
-                   case $days_of_the_week[day.worked_on.wday]
-                   when '土'
-                    "saturday_info"
-                   when '日'
-                    "sunday_info"
-                   end 
-                %>
-              
-               <tr>
-                 <td rowspan="2"><%= l(day.worked_on, format: :short) %></td>
-                 <td class = "<%= css_class %>" rowspan="2"><%= $days_of_the_week[day.worked_on.wday] %></td>
-                 <td colspan="3"><%= l(day.overtime_at, format: :time) %></td>
-                 <td colspan="4"><%= format_basic_info(@user.designated_work_end_time) %></td>
-                 <td colspan="2"><%= format("%.2f", calc_overtime(day.overtime_at, @user.designated_work_end_time)) %></td>
-                 <td colspan='6'><%= day.overtime_note %></td>
-                 <td colspan='3'><%= attendance.select :overtime_status_req, [["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], include_blank: "選択して下さい" %></td>
-                 <td colspan="1"><%= attendance.check_box :chg_permission %></td>
-                 <td colspan="3"><%= link_to "確認", show_attendance_status_req_user_path(day,date: day.worked_on.beginning_of_month), class: "btn btn-primary" %></td>
-               </tr>
-               <% end %> 
-              <% end %> 
+             <% overtime_attendances = Attendance.where(user_id: applicant.id, overtime_status_req: "申請中", new_instructor: current_user.name) %>
+                <% overtime_attendances.each do |day| %>
+                  <%= f.fields_for "attendances[]", day do |attendance| %>   
+                    <% css_class = case $days_of_the_week[day.worked_on.wday]
+                                   when '土'
+                                     "saturday_info"
+                                   when '日'
+                                     "sunday_info"
+                                   end %>
+                    <tr>
+                      <td rowspan="2"><%= l(day.worked_on, format: :short) %></td>
+                      <td class="<%= css_class %>" rowspan="2"><%= $days_of_the_week[day.worked_on.wday] %></td>
+                      <td colspan="3"><%= l(day.overtime_at, format: :time) %></td>
+                      <td colspan="4"><%= format_basic_info(@user.designated_work_end_time) %></td>
+                      <td colspan="2"><%= format("%.2f", calc_overtime(day.overtime_at, @user.designated_work_end_time)) %></td>
+                      <td colspan='6'><%= day.overtime_note %></td>
+                      <td colspan='3'><%= attendance.select :overtime_status_req, [["申請中", "申請中"], ["承認", "承認"], ["否認", "否認"]], include_blank: "選択して下さい" %></td>
+                      <td colspan="1"><%= attendance.check_box :chg_permission %></td>
+                      <td colspan="3"><%= link_to "確認", show_attendance_status_req_user_path(applicant.id), class: "btn btn-primary" %></td>
+                    </tr>
+                <% end %> 
+             <% end %>
              </tbody>  
              
              </table>
