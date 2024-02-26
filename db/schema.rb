@@ -12,13 +12,6 @@
 
 ActiveRecord::Schema.define(version: 20240220125633) do
 
-  create_table "add_create_to_attendances", force: :cascade do |t|
-    t.integer "attendance_nextday"
-    t.string "instructor"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "attendances", force: :cascade do |t|
     t.date "worked_on"
     t.datetime "started_at"
@@ -33,7 +26,7 @@ ActiveRecord::Schema.define(version: 20240220125633) do
     t.datetime "chg_started_at"
     t.datetime "chg_finished_at"
     t.boolean "chg_permission"
-    t.time "overtime_at"
+    t.datetime "overtime_at"
     t.string "overtime_note"
     t.string "new_instructor"
     t.datetime "workedhours"
@@ -75,8 +68,8 @@ ActiveRecord::Schema.define(version: 20240220125633) do
     t.string "remember_digest"
     t.boolean "admin", default: false
     t.string "department"
-    t.datetime "basic_time", default: "2023-08-28 23:00:00"
-    t.datetime "work_time", default: "2023-08-29 00:00:00"
+    t.datetime "basic_time", default: "2024-02-24 23:00:00"
+    t.datetime "work_time", default: "2024-02-25 00:00:00"
     t.string "affiliation"
     t.integer "employee_number"
     t.integer "uid"
