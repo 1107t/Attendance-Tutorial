@@ -38,7 +38,12 @@ class AttendancesController < ApplicationController
   end  
   
   def kintai_log
-    
+    if params[:date].present?
+      day = params[:date].to_date
+      @log_month = "【#{day.year}年#{day.month}月の勤怠修正ログ】" 
+    else
+      @log_month = ""
+    end
   end
   
   def serch_log

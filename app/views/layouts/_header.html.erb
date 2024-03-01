@@ -12,10 +12,14 @@
             <li><%= link_to "ユーザー一覧", users_path %></li>
             <li><%= link_to "基本情報の修正", edit_user_path(current_user) %></li>
             
+            <li> <%= link_to "ログアウト", logout_path, method: :delete %></li>
+                
+             
            <% end %>  
            <% if current_user.superior %>
             
            <% end %>
+           <% unless current_user.admin %>
            <% if current_user %>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -29,7 +33,8 @@
                 </li>
               </ul>
             </li>
-           <% end %>   
+           <% end %> 
+           <% end %>
            <% else %>
              <li><%= link_to "ログイン", login_path %></li>
         <% end %>

@@ -1,17 +1,13 @@
 <% provide(:title , "勤怠ログ") %>
 <h1>勤怠ログ</h1>
+<h4><%= @log_month %></h4>
 <table class= "table table-bordered table-condensed table-hover" id="users">
   
 
-  <thead>
+  
    <%= form_with(model: @user, url: attendances_serch_log_user_path, local: true, method: :post ) do |f| %>
-      
     <%= f.month_field :month, required: true %>
-         
-    
-  
-  
-     <%= f.submit '検索', class: "btn btn-sm btn-primary" %>
+    <%= f.submit '検索', class: "btn btn-sm btn-primary" %>
    <% end %>
     
    
